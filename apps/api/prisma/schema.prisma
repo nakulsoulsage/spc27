@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  TPO
+  RECRUITER
+  ALUMNI
+  SUPER_ADMIN
+}
+
+enum JobType {
+  INTERNSHIP
+  FULLTIME
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  SELECTED
+  OFFERED
+}
+
+enum RoundType {
+  APTITUDE
+  TECHNICAL
+  HR
+  GROUP_DISCUSSION
+  CODING
+}
+
+// ─── Models ───────────────────────────────────────────
+
+model Institution {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String   @unique // e.g. "iitb.ac.in"
+  address   String?
+  logo      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  jobPostings     JobPosting[]
+  companies       Company[]
+  studentProfiles StudentProfile[]
+  alumniProfiles  AlumniProfile[]
+
+  @@map("institutions")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role
+  phone         String?
+  avatar        String?
+  isActive      Boolean  @default(true)
+  isApproved    Boolean  @default(false)
+  institutionId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  institution    Institution      @relation(fields: [institutionId], references: [id])
+  studentProfile StudentProfile?
+  alumniProfile  AlumniProfile?
+  notifications  Notification[]
+  companyLinks   CompanyRecruiter[]
+
+  @@index([institutionId])
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model StudentProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  institutionId   String
+  enrollmentNo    String
+  course          String   // e.g. "B.Tech"
+  branch          String   // e.g. "Computer Science"
+  semester        Int?
+  cgpa            Float?
+  percentage10th  Float?
+  percentage12th  Float?
+  backlogs        Int      @default(0)
+  skills          String[] // PostgreSQL array
+  achievements    String?
+  resumeUrl       String?
+  linkedinUrl     String?
+  githubUrl       String?
+  isProfileComplete Boolean @default(false)
+  graduationYear  Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution  Institution   @relation(fields: [institutionId], references: [id])
+  applications Application[]
+
+  @@index([institutionId])
+  @@index([branch])
+  @@index([cgpa])
+  @@index([graduationYear])
+  @@map("student_profiles")
+}
+
+model AlumniProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  institutionId  String
+  graduationYear Int
+  course         String
+  branch         String
+  currentCompany String?
+  currentRole    String?
+  linkedinUrl    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id])
+
+  @@index([institutionId])
+  @@map("alumni_profiles")
+}
+
+model Company {
+  id            String   @id @default(cuid())
+  name          String
+  website       String?
+  industry      String?
+  logo          String?
+  description   String?
+  institutionId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  institution Institution        @relation(fields: [institutionId], references: [id])
+  recruiters  CompanyRecruiter[]
+  jobPostings JobPosting[]
+
+  @@index([institutionId])
+  @@map("companies")
+}
+
+model CompanyRecruiter {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@map("company_recruiters")
+}
+
+model JobPosting {
+  id                String    @id @default(cuid())
+  title             String
+  description       String
+  jobType           JobType
+  status            JobStatus @default(DRAFT)
+  location          String?
+  salary            String?
+  deadline          DateTime?
+  eligibilityCriteria Json?   // EligibilityCriteria JSON
+  companyId         String
+  institutionId     String
+  postedById        String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  company      Company            @relation(fields: [companyId], references: [id])
+  institution  Institution        @relation(fields: [institutionId], references: [id])
+  applications Application[]
+  rounds       RecruitmentRound[]
+
+  @@index([institutionId])
+  @@index([status])
+  @@index([companyId])
+  @@index([jobType])
+  @@map("job_postings")
+}
+
+model Application {
+  id               String            @id @default(cuid())
+  studentProfileId String
+  jobPostingId     String
+  status           ApplicationStatus @default(APPLIED)
+  currentRoundId   String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+  jobPosting     JobPosting     @relation(fields: [jobPostingId], references: [id])
+  roundResults   RoundResult[]
+  offer          Offer?
+
+  @@unique([studentProfileId, jobPostingId])
+  @@index([jobPostingId])
+  @@index([status])
+  @@map("applications")
+}
+
+model RecruitmentRound {
+  id           String    @id @default(cuid())
+  jobPostingId String
+  roundType    RoundType
+  roundNumber  Int
+  title        String?
+  description  String?
+  scheduledAt  DateTime?
+  meetingLink  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  jobPosting   JobPosting    @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  roundResults RoundResult[]
+
+  @@unique([jobPostingId, roundNumber])
+  @@index([jobPostingId])
+  @@map("recruitment_rounds")
+}
+
+model RoundResult {
+  id            String   @id @default(cuid())
+  applicationId String
+  roundId       String
+  passed        Boolean?
+  score         Float?
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  round       RecruitmentRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, roundId])
+  @@map("round_results")
+}
+
+model Offer {
+  id            String   @id @default(cuid())
+  applicationId String   @unique
+  salary        String
+  joiningDate   DateTime?
+  offerLetterUrl String?
+  isAccepted    Boolean?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("offers")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // NotificationType string
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}

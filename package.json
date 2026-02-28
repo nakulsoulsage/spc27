@@ -1,0 +1,23 @@
+{
+  "name": "spc27",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "dev:api": "turbo dev --filter=@spc27/api",
+    "dev:web": "turbo dev --filter=@spc27/web",
+    "db:generate": "turbo db:generate --filter=@spc27/api",
+    "db:push": "turbo db:push --filter=@spc27/api",
+    "db:seed": "turbo db:seed --filter=@spc27/api",
+    "db:studio": "pnpm --filter @spc27/api exec prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

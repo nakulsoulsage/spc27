@@ -19,30 +19,24 @@ import { useAuthStore } from '@/lib/auth';
 const roleNavItems: Record<string, { label: string; href: string; icon: any }[]> = {
   STUDENT: [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Jobs', href: '/jobs', icon: Briefcase },
+    { label: 'Opportunities', href: '/opportunities', icon: Briefcase },
     { label: 'Applications', href: '/applications', icon: FileText },
     { label: 'Profile', href: '/profile', icon: User },
   ],
   TPO: [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Students', href: '/admin/students', icon: Users },
-    { label: 'Drives', href: '/admin/drives', icon: Briefcase },
+    { label: 'Opportunities', href: '/admin/opportunities', icon: Briefcase },
+    { label: 'Announcements', href: '/admin/announcements', icon: Bell },
     { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  ],
-  RECRUITER: [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Job Postings', href: '/recruiter/jobs', icon: Briefcase },
-    { label: 'Company', href: '/recruiter/applicants', icon: Building2 },
   ],
   SUPER_ADMIN: [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Students', href: '/admin/students', icon: Users },
-    { label: 'Drives', href: '/admin/drives', icon: Briefcase },
+    { label: 'Opportunities', href: '/admin/opportunities', icon: Briefcase },
+    { label: 'Announcements', href: '/admin/announcements', icon: Bell },
     { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  ],
-  ALUMNI: [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'Profile', href: '/profile', icon: User },
+    { label: 'Institutions', href: '/admin/institutions', icon: Building2 },
   ],
 };
 
@@ -65,7 +59,9 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/dashboard' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}

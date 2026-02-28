@@ -6,12 +6,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { StudentsModule } from './modules/students/students.module';
-import { CompaniesModule } from './modules/companies/companies.module';
-import { JobsModule } from './modules/jobs/jobs.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
-import { RoundsModule } from './modules/rounds/rounds.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OpportunitiesModule } from './modules/opportunities/opportunities.module';
+import { AnnouncementsModule } from './modules/announcements/announcements.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -21,16 +22,20 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     UsersModule,
     InstitutionsModule,
     StudentsModule,
-    CompaniesModule,
-    JobsModule,
+    OpportunitiesModule,
     ApplicationsModule,
-    RoundsModule,
     NotificationsModule,
+    AnnouncementsModule,
+    DashboardModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

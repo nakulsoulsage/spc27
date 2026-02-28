@@ -1,17 +1,112 @@
-import { IsString, IsOptional, IsNumber, IsArray, IsInt, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsInt,
+  IsBoolean,
+  IsEnum,
+  IsArray,
+  IsDateString,
+  Min,
+  Max,
+} from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { Type } from 'class-transformer';
+import { Gender, Category } from '@prisma/client';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
 
-export class UpdateStudentProfileDto {
+export class CreateStudentProfileDto {
+  @IsString()
+  enrollmentNo: string;
+
+  @IsString()
+  course: string;
+
+  @IsString()
+  branch: string;
+
+  @IsInt()
+  graduationYear: number;
+
   @IsOptional()
   @IsString()
-  enrollmentNo?: string;
+  fullName?: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  @IsDateString()
+  dob?: string;
 
   @IsOptional()
   @IsString()
-  course?: string;
+  personalEmail?: string;
 
   @IsOptional()
   @IsString()
-  branch?: string;
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  alternatePhone?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  pincode?: string;
+
+  @IsOptional()
+  @IsEnum(Category)
+  category?: Category;
+
+  @IsOptional()
+  @IsString()
+  nationality?: string;
+
+  @IsOptional()
+  @IsString()
+  tenthBoard?: string;
+
+  @IsOptional()
+  @IsInt()
+  tenthYear?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  tenthPercentage?: number;
+
+  @IsOptional()
+  @IsString()
+  twelfthBoard?: string;
+
+  @IsOptional()
+  @IsInt()
+  twelfthYear?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  twelfthPercentage?: number;
+
+  @IsOptional()
+  @IsString()
+  specialization?: string;
 
   @IsOptional()
   @IsInt()
@@ -24,30 +119,34 @@ export class UpdateStudentProfileDto {
   cgpa?: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(0)
-  @Max(100)
-  percentage10th?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  @Max(100)
-  percentage12th?: number;
+  activeBacklogs?: number;
 
   @IsOptional()
   @IsInt()
   @Min(0)
-  backlogs?: number;
+  backlogHistory?: number;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  skills?: string[];
+  skills?: any;
+
+  @IsOptional()
+  certifications?: any;
+
+  @IsOptional()
+  internships?: any;
+
+  @IsOptional()
+  projects?: any;
 
   @IsOptional()
   @IsString()
-  achievements?: string;
+  linkedin?: string;
+
+  @IsOptional()
+  @IsString()
+  github?: string;
 
   @IsOptional()
   @IsString()
@@ -55,27 +154,47 @@ export class UpdateStudentProfileDto {
 
   @IsOptional()
   @IsString()
-  linkedinUrl?: string;
+  photoUrl?: string;
 
   @IsOptional()
   @IsString()
-  githubUrl?: string;
+  tenthMarksheetUrl?: string;
 
   @IsOptional()
-  @IsInt()
-  graduationYear?: number;
+  @IsString()
+  twelfthMarksheetUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  graduationMarksheetUrl?: string;
 }
 
-export class CreateStudentProfileDto extends UpdateStudentProfileDto {
-  @IsString()
-  enrollmentNo: string;
+export class UpdateStudentProfileDto extends PartialType(CreateStudentProfileDto) {}
 
-  @IsString()
-  course: string;
+export class BulkUploadResultDto {
+  total: number;
+  created: number;
+  failed: number;
+  errors: { row: number; message: string }[];
+}
 
+export class StudentQueryDto extends PaginationDto {
+  @IsOptional()
   @IsString()
-  branch: string;
+  branch?: string;
 
+  @IsOptional()
+  @Type(() => Number)
   @IsInt()
-  graduationYear: number;
+  graduationYear?: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isPlaced?: boolean;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isProfileComplete?: boolean;
 }

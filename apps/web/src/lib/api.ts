@@ -9,7 +9,8 @@ class ApiError extends Error {
     public status: number,
     public data: any,
   ) {
-    super(data?.message?.[0] || 'API Error');
+    const msg = data?.message;
+    super(Array.isArray(msg) ? msg[0] : msg || 'API Error');
   }
 }
 
@@ -17,9 +18,14 @@ async function fetchApi<T = any>(endpoint: string, options: FetchOptions = {}): 
   const { token, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
+  // Only set Content-Type to JSON if there's no explicit header override
+  // and the body is not FormData (for file uploads)
+  if (!(fetchOptions.body instanceof FormData)) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -51,6 +57,13 @@ export const api = {
 
   delete: <T = any>(endpoint: string, token?: string) =>
     fetchApi<T>(endpoint, { method: 'DELETE', token }),
+
+  upload: <T = any>(endpoint: string, formData: FormData, token?: string) =>
+    fetchApi<T>(endpoint, {
+      method: 'POST',
+      body: formData,
+      token,
+    }),
 };
 
 export { ApiError };
